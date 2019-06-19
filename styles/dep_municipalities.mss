@@ -1,9 +1,4 @@
-#boundary_county,
-#boundary_district,
-#boundary_school_district,
-#boundary_huc08,
-#boundary_huc10,
-#boundary_huc12 {
+#dep_municipalities {
   ::case {
    line-color: #FFF;
    line-opacity: 0.5;
@@ -13,7 +8,7 @@
 
   ::fill  {
     polygon-opacity: 0.0;
-    line-color: #E77471;
+    line-color: #1d3331;
     line-opacity: 0.75;
     line-width: 1.5;
     line-join: round;

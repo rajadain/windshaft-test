@@ -9,6 +9,8 @@ var aws = require('aws-sdk'),
         fs.readFileSync(`styles/${name}.mss`, { encoding: 'utf8' }),
     styles = {
         boundary: getStyle('boundary'),
+        dep_municipalities: getStyle('dep_municipalities'),
+        dep_urban_areas: getStyle('dep_urban_areas'),
         drb_catchment_water_quality_tn: getStyle('drb_catchment_water_quality_tn'),
         drb_catchment_water_quality_tp: getStyle('drb_catchment_water_quality_tp'),
         drb_catchment_water_quality_tss: getStyle('drb_catchment_water_quality_tss'),
@@ -105,11 +107,11 @@ var interactivity = {
         },
         municipalities: {
             name: 'dep_municipalities',
-            style: styles.boundary,
+            style: styles.dep_municipalities,
         },
         urban_areas: {
             name: 'dep_urban_areas',
-            style: styles.boundary,
+            style: styles.dep_urban_areas,
         },
         // The DRB Catchment tables here use aliases to match data from different
         // columns in the `drb_catchment_water_quality` table to different
@@ -308,8 +310,12 @@ var config = {
                 req.params.sql = getSqlForStreamByReq(req);
             }
 
-            if (!req.params.sql) {
+            if (name.indexOf('boundary') >= 0) {
                 req.params.sql = `SELECT id, geom, name FROM ${name}`;
+            }
+
+            if (!req.params.sql) {
+                req.params.sql = `SELECT geom FROM ${name}`;
             }
 
             req.params.dbname = dbName;

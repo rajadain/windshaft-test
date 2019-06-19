@@ -1,4 +1,4 @@
-@zoomBase: 0.5;
+@zoomBase: 0.6;
 
 // Updates to steps should also be made to the legend_mappings
 // in mmw/settings/layer_settings
@@ -10,3 +10,4 @@
 @drb_catchment_step_five_color: #202020;
 @drb_catchment_line_color: #FFF;
 @drb_catchment_line_width: 2;
+
