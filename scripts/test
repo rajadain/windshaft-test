@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+LAYER="${1}"
+
+mkdir .tmp/
+http --download http://localhost:4000/$LAYER/12/1193/1551.png > .tmp/local.png
+http --download https://green-tiles.staging.modelmywatershed.org/$LAYER/12/1193/1551.png  > .tmp/staging.png
+diff .tmp/local.png .tmp/staging.png
