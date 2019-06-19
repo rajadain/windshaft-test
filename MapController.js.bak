@@ -1,0 +1,151 @@
+const step = require('step');
+const windshaft = require('windshaft');
+const DummyMapConfigProvider = require('windshaft/lib/windshaft/models/providers/dummy_mapconfig_provider');
+
+const { model: { MapConfig, provider: { MapStoreMapConfig } } } = windshaft;
+
+// function MapController(app, mapStore, mapBackend, tileBackend) {
+//     this._app = app;
+//     this.mapStore = mapStore;
+//     this.mapBackend = mapBackend;
+//     this.tileBackend = tileBackend;
+// }
+
+// MapController.prototype.cors = function(req, res, next) {
+//     this._app.doCORS(res, 'Content-Type');
+//     return next();
+// }
+
+// MapController.prototype.tile = function(req, res) {
+//     let mapConfig;
+
+//     this._app.doCORS(res);
+
+//     step(
+//         // Prepare Params
+//         () => { this._app.req2params(req, this) },
+//         // Get Map Config
+//         (err) => {
+//             mapConfig = MapConfig.create({
+//                 layers: [{
+//                     type: 'mapnik',
+//                     options: {
+//                         sql: req.params.sql,
+//                         cartocss: req.params.style,
+//                         cartocss_version: '2.0.1',
+//                         interactivity: req.params.interactivity,
+//                     },
+//                 }],
+//             });
+
+//             this.mapStore.load(mapConfig.id(), this);
+//         },
+//         // Save Map Config
+//         (err, layer) => {
+//             if (layer) {
+//                 this(null, layer);
+//             } else {
+//                 this.create(req, mapConfig, this);
+//             }
+//         },
+//         // Get Tile
+//         (err, tile, headers) => {
+//             this.finalizeGetTileOrGrid(err, req, res, tile, headers);
+//             return null;
+//         },
+//         // Finish
+//         (err) => {
+//             if (err) {
+//                 console.error(`windshaft.tiles: ${err}`);
+//             }
+//         },
+//     );
+// }
+
+class MapController {
+    constructor(app, mapStore, mapBackend, tileBackend) {
+        this._app = app;
+        this.mapStore = mapStore;
+        this.mapBackend = mapBackend;
+        this.tileBackend = tileBackend;
+
+        this.tile = this.tile.bind(this);
+        this.cors = this.cors.bind(this);
+        this.finalizeGetTileOrGrid = this.finalizeGetTileOrGrid.bind(this);
+    }
+
+    cors(req, res, next) {
+        this._app.doCORS(res, 'Content-Type');
+        return next();
+    }
+
+    tile(req, res) {
+        let mapConfig;
+
+        this._app.doCORS(res);
+
+        step(
+            // Prepare Params
+            () => { this._app.req2params(req, this) },
+            // Get Map Config
+            (err) => {
+                mapConfig = MapConfig.create({
+                    layers: [{
+                        type: 'mapnik',
+                        options: {
+                            sql: req.params.sql,
+                            cartocss: req.params.style,
+                            cartocss_version: '2.0.1',
+                            interactivity: req.params.interactivity,
+                        },
+                    }],
+                });
+
+                this.mapStore.load(mapConfig.id(), this);
+            },
+            // Save Map Config
+            (err, layer) => {
+                if (layer) {
+                    this(null, layer);
+                } else {
+                    this.create(req, mapConfig, this);
+                }
+            },
+            // Get Tile
+            (err, tile, headers) => {
+                this.finalizeGetTileOrGrid(err, req, res, tile, headers);
+                return null;
+            },
+            // Finish
+            (err) => {
+                if (err) {
+                    console.error(`windshaft.tiles: ${err}`);
+                }
+            },
+        );
+    }
+
+    finalizeGetTileOrGrid(err, req, res, tile, headers) {
+        if (err) {
+            let errMsg = err.message ? `${err.message}` : `${err}`;
+
+            // Rewrite mapnik parsing errors to start with layer number
+            const matches = errMsg.match("(.*) in style 'layer([0-9]+)'");
+            if (matches) {
+                errMsg = `style${matches[2]}: ${matches[1]}`;
+            }
+
+            this._app.sendError(res, { errors: [errMsg] }, this._app.findStatusCode(err), 'TILE', err);
+        } else {
+            res.send(tile, headers, 200);
+        }
+    }
+
+    register(app) {
+        app.get(app.base_url + '/:z/:x/:y@:scale_factor?x.:format(png|grid\.json)', this.tile);
+        app.get(app.base_url + '/:z/:x/:y.:format(png|grid\.json)', this.tile);
+        app.options(app.base_url, this.cors);
+    }
+}
+
+module.exports = MapController;

@@ -1,0 +1,26 @@
+{
+  "name": "windshaft-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --inspect index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@carto/mapnik": "^3.6.2-carto.15",
+    "aws-sdk": "^2.478.0",
+    "body-parser": "^1.19.0",
+    "debug": "^4.1.1",
+    "express": "^4.17.1",
+    "lodash": "^4.17.11",
+    "morgan": "^1.9.1",
+    "step": "^1.0.0",
+    "windshaft": "^5.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
