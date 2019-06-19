@@ -143,7 +143,7 @@ var interactivity = {
         tableId = req.params.tableId;
         stream_order = 0;  // All streams
 
-        if (tableName === tables.drb_streams_v2) {
+        if (tableName === tables.drb_streams_v2.name) {
             // drb_zoom_levels: { zoomLevel : stream_order }
             drb_zoom_levels = {
                 1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
@@ -181,9 +181,9 @@ var interactivity = {
             sql.push('SELECT geom, stream_order, ')
             sql.push(qualityMap.join(''), ' ')
             sql.push('AS nhd_qual_grp ')
-            sql.push('FROM ',tables.nhd_streams_v2,' ')
+            sql.push('FROM ',tables.nhd_streams_v2.name,' ')
             sql.push('LEFT OUTER JOIN ',nhdQualityTable,' ')
-            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2,'.comid',' ')
+            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2.name,'.comid',' ')
             sql.push('WHERE stream_order >= ',streamOrder)
             return sql.join('');
         }
