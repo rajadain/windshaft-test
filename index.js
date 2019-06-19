@@ -4,12 +4,16 @@ var aws = require('aws-sdk'),
     // rollbar = require('rollbar'),
     fs = require('fs'),
     stream = require('stream'),
-    styleVariables = fs.readFileSync('styles/_variables.mss', { encoding: 'utf8' }),
+    getStyle = name =>
+        fs.readFileSync('styles/_variables.mss', { encoding: 'utf8' }) +
+        fs.readFileSync(`styles/${name}.mss`, { encoding: 'utf8' }),
     styles = {
-        boundary: styleVariables + fs.readFileSync('styles/boundary.mss', { encoding: 'utf8' }),
-        catchment: styleVariables + fs.readFileSync('styles/catchment.mss', { encoding: 'utf8' }),
-        quality: styleVariables + fs.readFileSync('styles/quality.mss', { encoding: 'utf8' }),
-        streams: styleVariables + fs.readFileSync('styles/streams.mss', { encoding: 'utf8' }),
+        boundary: getStyle('boundary'),
+        drb_catchment_water_quality_tn: getStyle('drb_catchment_water_quality_tn'),
+        drb_catchment_water_quality_tp: getStyle('drb_catchment_water_quality_tp'),
+        drb_catchment_water_quality_tss: getStyle('drb_catchment_water_quality_tss'),
+        quality: getStyle('quality'),
+        streams: getStyle('streams'),
     };
 
 var dbUser = process.env.MMW_DB_USER || 'mmw',
@@ -112,15 +116,18 @@ var interactivity = {
         // rendering rules.
         drb_catchment_water_quality_tn: {
             name: 'drb_catchment_water_quality_tn',
-            style: styles.catchment,
+            style: styles.drb_catchment_water_quality_tn,
+            column: 'tn_tot_kgy',
         },
         drb_catchment_water_quality_tp: {
             name: 'drb_catchment_water_quality_tp',
-            style: styles.catchment,
+            style: styles.drb_catchment_water_quality_tp,
+            column: 'tp_tot_kgy',
         },
         drb_catchment_water_quality_tss: {
             name: 'drb_catchment_water_quality_tss',
-            style: styles.catchment,
+            style: styles.drb_catchment_water_quality_tss,
+            column: 'tss_tot_kg',
         },
     },
     drbCatchmentWaterQualityTable = 'drb_catchment_water_quality';
@@ -201,27 +208,9 @@ var interactivity = {
     },
 
     getSqlForDRBCatchmentByTableId = function(tableId) {
-        var columnToRetrive = null,
-            resultsAliasName = null;
-        switch (tableId) {
-            case 'drb_catchment_water_quality_tn':
-                columnToRetrive = 'tn_tot_kgy';
-                resultsAliasName = 'drb_wq_tn';
-                break;
-            case 'drb_catchment_water_quality_tp':
-                columnToRetrive = 'tp_tot_kgy';
-                resultsAliasName = 'drb_wq_tp';
-                break;
-            case 'drb_catchment_water_quality_tss':
-                columnToRetrive = 'tss_tot_kg';
-                resultsAliasName = 'drb_wq_tss';
-                break;
-            default:
-                throw new Error('Invalid drb_catchment_water_quality value');
-                break;
-        }
-        return 'SELECT geom, ' + columnToRetrive + ' FROM ' +
-            drbCatchmentWaterQualityTable + ') AS ' + resultsAliasName;
+        const { column } = tables[tableId];
+
+        return `SELECT geom, ${column} FROM ${drbCatchmentWaterQualityTable}`;
     };
 
 var config = {
