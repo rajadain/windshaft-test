@@ -308,11 +308,14 @@ var config = {
                 req.params.sql = getSqlForStreamByReq(req);
             }
 
-            console.log(req.params);
+            if (!req.params.sql) {
+                req.params.sql = `SELECT id, geom, name FROM ${name}`;
+            }
 
             req.params.dbname = dbName;
             req.params.style = style;
-            req.params.interactivity = interactivity[tableName];
+            req.params.interactivity = interactivity[name];
+
             callback(null, req);
         } catch (ex) {
             rollbar.handleError(ex, req);
