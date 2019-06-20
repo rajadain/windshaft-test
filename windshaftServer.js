@@ -6,7 +6,7 @@
 var debug = require('debug')('windshaft:server');
 var express = require('express');
 var RedisPool = require('redis-mpool');
-var _ = require('lodash');
+var _ = require('underscore');
 var mapnik = require('@carto/mapnik');
 
 // Express Middleware

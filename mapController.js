@@ -5,7 +5,6 @@ var windshaft = require('windshaft');
 
 var MapConfig = windshaft.model.MapConfig;
 var DummyMapConfigProvider = require('windshaft/lib/windshaft/models/providers/dummy_mapconfig_provider');
-
 var MapStoreMapConfigProvider = windshaft.model.provider.MapStoreMapConfig;
 
 const { statusFromErrorMessage } = require('./utils');
@@ -28,9 +27,12 @@ module.exports = MapController;
 
 
 MapController.prototype.register = function(app) {
-    app.get(app.base_url + '/:z/:x/:y@:scale_factor?x.:format(png|grid\.json)', this.tile.bind(this));
-    app.get(app.base_url + '/:z/:x/:y.:format(png|grid\.json)', this.tile.bind(this));
-    app.options(app.base_url, this.cors.bind(this));
+    const tile = this.tile.bind(this);
+    const cors = this.cors.bind(this);
+
+    app.get(app.base_url + '/:z/:x/:y@:scale_factor?x.:format(png|grid\.json)', tile);
+    app.get(app.base_url + '/:z/:x/:y.:format(png|grid\.json)', tile);
+    app.options(app.base_url, cors);
 };
 
 // send CORS headers when client send options.
@@ -109,9 +111,9 @@ MapController.prototype.finalizeGetTileOrGrid = function(err, req, res, tile, he
             errMsg = 'style'+matches[2]+': ' + matches[1];
         }
 
-        const status = err.http_status || statusFromErrorMessage(err.toString());
+        const status = err.http_status || statusFromErrorMessage(errMsg);
 
-        this._app.sendError(res, { errors: ['' + errMsg] }, status, 'TILE', err);
+        this._app.sendError(res, { errors: [errMsg] }, status, 'TILE', err);
     } else {
         res.status(200).set(headers).send(tile);
     }
