@@ -2,6 +2,7 @@
 
 var step = require('step');
 var windshaft = require('windshaft');
+var _ = require('underscore');
 
 var MapConfig = windshaft.model.MapConfig;
 var DummyMapConfigProvider = require('windshaft/lib/windshaft/models/providers/dummy_mapconfig_provider');
@@ -88,6 +89,7 @@ MapController.prototype.tile = function(req, res) {
         },
         function mapController$finalize(err, tile, headers) {
             self.finalizeGetTileOrGrid(err, req, res, tile, headers);
+            self._app.cacheTile(req, tile);
             return null;
         },
         function finish(err) {
@@ -115,6 +117,9 @@ MapController.prototype.finalizeGetTileOrGrid = function(err, req, res, tile, he
 
         this._app.sendError(res, { errors: [errMsg] }, status, 'TILE', err);
     } else {
-        res.status(200).set(headers).send(tile);
+        res.status(200)
+            // Add cache header for 30 days
+            .set(_.extend(headers, { 'Cache-Control': 'max-age=2592000' }))
+            .send(tile);
     }
 };

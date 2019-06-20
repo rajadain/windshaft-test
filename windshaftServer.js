@@ -8,6 +8,9 @@ var express = require('express');
 var RedisPool = require('redis-mpool');
 var _ = require('underscore');
 var mapnik = require('@carto/mapnik');
+var aws = require('aws-sdk');
+var rollbar = require('rollbar');
+var stream = require('stream');
 
 // Express Middleware
 var morgan = require('morgan');
@@ -130,6 +133,36 @@ module.exports = function(opts) {
       }
 
       res.status(statusCode).send(err);
+    };
+
+    app.cacheTile = function(req, tile) {
+        try {
+            // Skip caching if environment not setup for it
+            if (req.headers.host === 'localhost' || !opts.s3Cache.bucket) {
+                return;
+            }
+
+            var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
+                s3Obj = new aws.S3({params: {Bucket: opts.s3Cache.bucket, Key: cleanUrl}}),
+                body;
+
+            if (Buffer.isBuffer(tile)) {
+                body = new stream.PassThrough();
+                body.end(tile);
+            } else {
+                body = JSON.stringify(tile);
+            }
+
+            if (body) {
+                s3Obj.upload({Body: body}, function(err) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
+            }
+        } catch (ex) {
+            rollbar.handleError(ex, req);
+        }
     };
 
     /*******************************************************************************************************************
