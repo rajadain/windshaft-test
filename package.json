@@ -15,6 +15,7 @@
     "debug": "^4.1.1",
     "express": "^4.17.1",
     "morgan": "^1.9.1",
+    "rollbar": "^2.7.1",
     "step": "^1.0.0",
     "underscore": "^1.9.1",
     "windshaft": "^5.3.0"
