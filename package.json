@@ -12,7 +12,6 @@
   "dependencies": {
     "@carto/mapnik": "^3.6.2-carto.15",
     "aws-sdk": "^2.478.0",
-    "body-parser": "^1.19.0",
     "debug": "^4.1.1",
     "express": "^4.17.1",
     "lodash": "^4.17.11",

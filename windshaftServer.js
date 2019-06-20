@@ -10,7 +10,6 @@ var _ = require('lodash');
 var mapnik = require('@carto/mapnik');
 
 // Express Middleware
-var bodyParser = require('body-parser');
 var morgan = require('morgan');
 
 var windshaft = require('windshaft');
@@ -105,24 +104,9 @@ module.exports = function(opts) {
     var rendererCache = new windshaft.cache.RendererCache(rendererFactory, rendererCacheOpts);
 
     var attributesBackend = new windshaft.backend.Attributes();
-    var previewBackend = new windshaft.backend.Preview(rendererCache);
     var tileBackend = new windshaft.backend.Tile(rendererCache);
     var mapValidatorBackend = new windshaft.backend.MapValidator(tileBackend, attributesBackend);
     var mapBackend = new windshaft.backend.Map(rendererCache, map_store, mapValidatorBackend);
-
-    app.sendResponse = function(res, args) {
-      res.send.apply(res, args);
-    };
-
-    app.findStatusCode = function(err) {
-        var statusCode;
-        if ( err.http_status ) {
-            statusCode = err.http_status;
-        } else {
-            statusCode = statusFromErrorMessage('' + err);
-        }
-        return statusCode;
-    };
 
     app.sendError = function(res, err, statusCode, label, tolog) {
       var olabel = '[';
@@ -214,15 +198,9 @@ function bootstrap(opts) {
         app = express();
     }
     app.enable('jsonp callback');
-    app.use(bodyParser());
 
     if (opts.log_format) {
-        var loggerOpts = {
-            // optional log format
-            format: opts.log_format
-        };
-
-        app.use(morgan(loggerOpts));
+        app.use(morgan(opts.log_format));
     }
 
     return app;
@@ -248,28 +226,6 @@ function addFilters(app, opts) {
             }
         }
     });
-}
-
-function statusFromErrorMessage(errMsg) {
-    // Find an appropriate statusCode based on message
-    var statusCode = 400;
-    if ( -1 !== errMsg.indexOf('permission denied') ) {
-        statusCode = 403;
-    }
-    else if ( -1 !== errMsg.indexOf('authentication failed') ) {
-        statusCode = 403;
-    }
-    else if (errMsg.match(/Postgis Plugin.*[\s|\n].*column.*does not exist/)) {
-        statusCode = 400;
-    }
-    else if ( -1 !== errMsg.indexOf('does not exist') ) {
-        if ( -1 !== errMsg.indexOf(' role ') ) {
-            statusCode = 403; // role 'xxx' does not exist
-        } else {
-            statusCode = 404;
-        }
-    }
-    return statusCode;
 }
 
 function mapnikVersion(opts) {

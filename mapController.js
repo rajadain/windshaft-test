@@ -8,6 +8,8 @@ var DummyMapConfigProvider = require('windshaft/lib/windshaft/models/providers/d
 
 var MapStoreMapConfigProvider = windshaft.model.provider.MapStoreMapConfig;
 
+const { statusFromErrorMessage } = require('./utils');
+
 /**
  * @param app
  * @param {MapStore} mapStore
@@ -107,8 +109,10 @@ MapController.prototype.finalizeGetTileOrGrid = function(err, req, res, tile, he
             errMsg = 'style'+matches[2]+': ' + matches[1];
         }
 
-        this._app.sendError(res, { errors: ['' + errMsg] }, this._app.findStatusCode(err), 'TILE', err);
+        const status = err.http_status || statusFromErrorMessage(err.toString());
+
+        this._app.sendError(res, { errors: ['' + errMsg] }, status, 'TILE', err);
     } else {
-        res.send(tile, headers, 200);
+        res.status(200).set(headers).send(tile);
     }
 };
