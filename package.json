@@ -13,7 +13,7 @@
     "@carto/mapnik": "^3.6.2-carto.15",
     "aws-sdk": "^2.478.0",
     "debug": "^4.1.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "morgan": "^1.9.1",
     "rollbar": "^2.7.1",
     "step": "^1.0.0",
